@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import bcrypt from 'bcryptjs';
 import type { Board, Task, User } from '@/types';
 
@@ -9,7 +10,10 @@ export type Db = {
   tasks: Task[];
 };
 
-const DATA_FILE = path.join(process.cwd(), 'data.json');
+// On serverless platforms like Vercel, the deployment filesystem is read-only.
+// Use OS temp dir (e.g., /tmp) there; use CWD locally. Allow override via DATA_DIR.
+const DATA_DIR = process.env.DATA_DIR || (process.env.VERCEL ? os.tmpdir() : process.cwd());
+const DATA_FILE = path.join(DATA_DIR, 'data.json');
 
 function createInitialDb(): Db {
   const salt = bcrypt.genSaltSync(10);
@@ -123,6 +127,13 @@ function createInitialDb(): Db {
 
 export function loadDb(): Db {
   try {
+    // Ensure data directory exists when using a custom dir
+    try {
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
+    } catch {}
+
     if (!fs.existsSync(DATA_FILE)) {
       const initial = createInitialDb();
       fs.writeFileSync(DATA_FILE, JSON.stringify(initial, null, 2), 'utf-8');
