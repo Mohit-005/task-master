@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     
     const normalizedEmail = email.toLowerCase();
 
-    const db = loadDb();
+    const db = await loadDb();
     const existingUser = db.users.find(u => u.email.toLowerCase() === normalizedEmail);
     if (existingUser) {
       console.log('Signup failed: User already exists');
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     };
 
     db.users.push(newUser);
-    saveDb(db);
+    await saveDb(db);
     console.log('New user added to DB:', JSON.stringify(newUser, null, 2));
 
 
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 1 day
     const session = await encrypt({ userId: newUser.id, expires });
 
-    cookies().set('session', session, {
+    (await cookies()).set('session', session, {
       expires,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
       userId: newUser.id,
     };
     db.boards.push(newBoard);
-    saveDb(db);
+    await saveDb(db);
     console.log('Created default board for new user.');
     console.log('====================');
 

@@ -19,7 +19,7 @@ export async function PATCH(
   }
 
   const boardId = params.boardId;
-  const db = loadDb();
+  const db = await loadDb();
   const boardIndex = db.boards.findIndex(b => b.id === boardId);
   
   if (boardIndex === -1) {
@@ -40,7 +40,7 @@ export async function PATCH(
 
   const updatedBoard = { ...board, name: parsed.data.name };
   db.boards[boardIndex] = updatedBoard;
-  saveDb(db);
+  await saveDb(db);
 
   return NextResponse.json(updatedBoard, { status: 200 });
 }
@@ -56,7 +56,7 @@ export async function DELETE(
   }
 
   const boardId = params.boardId;
-  const db = loadDb();
+  const db = await loadDb();
   const boardIndex = db.boards.findIndex(b => b.id === boardId);
   
   if (boardIndex === -1) {
@@ -70,7 +70,7 @@ export async function DELETE(
 
   db.boards.splice(boardIndex, 1);
   db.tasks = db.tasks.filter(t => t.boardId !== boardId);
-  saveDb(db);
+  await saveDb(db);
 
   return NextResponse.json({ message: 'Board deleted successfully' });
 }

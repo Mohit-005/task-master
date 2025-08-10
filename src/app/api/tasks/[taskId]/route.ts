@@ -15,7 +15,7 @@ const taskUpdateSchema = z.object({
 });
 
 async function authorizeTaskAccess(taskId: string, userId: string) {
-    const db = loadDb();
+    const db = await loadDb();
     const task = db.tasks.find(t => t.id === taskId);
     if (!task) return null;
 
@@ -35,7 +35,8 @@ export async function PUT(
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
   
-  const task = await authorizeTaskAccess(params.taskId, session.user.id);
+  const { taskId } = await Promise.resolve(params);
+  const task = await authorizeTaskAccess(taskId, session.user.id);
   if (!task) {
     return NextResponse.json({ message: 'Task not found or forbidden' }, { status: 404 });
   }
@@ -47,11 +48,12 @@ export async function PUT(
       return NextResponse.json({ message: 'Invalid data', errors: parsed.error.errors }, { status: 400 });
   }
 
-  const db = loadDb();
-  const taskIndex = db.tasks.findIndex(t => t.id === params.taskId);
+  const db = await loadDb();
+  const { taskId } = await Promise.resolve(params);
+  const taskIndex = db.tasks.findIndex(t => t.id === taskId);
   const updatedTask = { ...db.tasks[taskIndex], ...parsed.data };
   db.tasks[taskIndex] = updatedTask;
-  saveDb(db);
+  await saveDb(db);
 
   return NextResponse.json(updatedTask, { status: 200 });
 }
@@ -65,15 +67,16 @@ export async function DELETE(
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
   
-  const task = await authorizeTaskAccess(params.taskId, session.user.id);
+  const { taskId: delTaskId } = await Promise.resolve(params);
+  const task = await authorizeTaskAccess(delTaskId, session.user.id);
   if (!task) {
     return NextResponse.json({ message: 'Task not found or forbidden' }, { status: 404 });
   }
 
-  const db = loadDb();
-  const taskIndex = db.tasks.findIndex(t => t.id === params.taskId);
-  db.tasks.splice(taskIndex, 1);
-  saveDb(db);
+  const db = await loadDb();
+  const delIndex = db.tasks.findIndex(t => t.id === delTaskId);
+  db.tasks.splice(delIndex, 1);
+  await saveDb(db);
 
   return NextResponse.json({ message: 'Task deleted' }, { status: 200 });
 }

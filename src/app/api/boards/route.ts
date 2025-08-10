@@ -10,7 +10,7 @@ export async function GET() {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const db = loadDb();
+  const db = await loadDb();
   const boards = db.boards.filter(b => b.userId === session.user.id);
   return NextResponse.json({ boards });
 }
@@ -33,8 +33,8 @@ export async function POST(request: Request) {
     userId: session.user.id,
   };
 
-  const db = loadDb();
+  const db = await loadDb();
   db.boards.push(newBoard);
-  saveDb(db);
+  await saveDb(db);
   return NextResponse.json(newBoard, { status: 201 });
 }

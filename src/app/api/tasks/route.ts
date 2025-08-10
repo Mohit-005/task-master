@@ -21,7 +21,7 @@ export async function GET() {
   }
 
   // Only return tasks from boards owned by the user
-  const db = loadDb();
+  const db = await loadDb();
   const userBoardIds = new Set(db.boards.filter(b => b.userId === session.user.id).map(b => b.id));
   const tasks = db.tasks.filter(t => userBoardIds.has(t.boardId));
   
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
   
   const { boardId, ...taskData } = parsed.data;
 
-  const db = loadDb();
+  const db = await loadDb();
   const board = db.boards.find(b => b.id === boardId);
   if (!board || board.userId !== session.user.id) {
     return NextResponse.json({ message: 'Board not found or you do not have permission' }, { status: 403 });
@@ -60,6 +60,6 @@ export async function POST(request: Request) {
   };
 
   db.tasks.push(newTask);
-  saveDb(db);
+  await saveDb(db);
   return NextResponse.json(newTask, { status: 201 });
 }

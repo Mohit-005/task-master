@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     const normalizedEmail = email.toLowerCase();
-    const db = loadDb();
+    const db = await loadDb();
     const user = db.users.find(u => u.email.toLowerCase() === normalizedEmail);
 
     if (!user || !user.password) {
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     // Sign minimal payload to keep cookie size small
     const session = await encrypt({ userId: user.id, expires });
 
-    cookies().set('session', session, {
+    (await cookies()).set('session', session, {
       expires,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { kv as vercelKv } from '@vercel/kv';
 import bcrypt from 'bcryptjs';
 import type { Board, Task, User } from '@/types';
 
@@ -125,7 +126,18 @@ function createInitialDb(): Db {
   };
 }
 
-export function loadDb(): Db {
+function isKvAvailable(): boolean {
+  return !!vercelKv && (!!process.env.KV_REST_API_URL || !!process.env.KV_URL || !!process.env.VERCEL);
+}
+
+export async function loadDb(): Promise<Db> {
+  if (isKvAvailable()) {
+    const existing = await vercelKv.get<Db>('db');
+    if (existing) return existing;
+    const initial = createInitialDb();
+    await vercelKv.set('db', initial);
+    return initial;
+  }
   try {
     // Ensure data directory exists when using a custom dir
     try {
@@ -149,7 +161,11 @@ export function loadDb(): Db {
   }
 }
 
-export function saveDb(db: Db): void {
+export async function saveDb(db: Db): Promise<void> {
+  if (isKvAvailable()) {
+    await vercelKv.set('db', db);
+    return;
+  }
   fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2), 'utf-8');
 }
 
