@@ -26,7 +26,7 @@ export async function PATCH(
     return NextResponse.json({ message: 'Board not found' }, { status: 404 });
   }
   
-  const board = db3.boards[boardIndex];
+  const board = db.boards[boardIndex];
   if (board.userId !== session.user.id) {
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
   }
@@ -64,7 +64,7 @@ export async function DELETE(
     return NextResponse.json({ message: 'Board not found' }, { status: 404 });
   }
   
-  const board = db.boards[boardIndex];
+  const board = db3.boards[boardIndex];
   if (board.userId !== session.user.id) {
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
   }
