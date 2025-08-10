@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { put as blobPut, head as blobHead } from '@vercel/blob';
+import { put as blobPut, list as blobList } from '@vercel/blob';
 import bcrypt from 'bcryptjs';
 import type { Board, Task, User } from '@/types';
 
@@ -131,14 +131,18 @@ const BLOB_KEY = 'taskmaster-data.json';
 export async function loadDb(): Promise<Db> {
   // Prefer Blob in serverless to store a single JSON file
   if (process.env.VERCEL) {
-    const meta = await blobHead(BLOB_KEY).catch(() => null as any);
-    const url = (meta as any)?.url || (meta as any)?.downloadUrl;
-    if (url) {
-      const text = await fetch(url).then(r => r.text());
+    const { blobs } = await blobList({ prefix: BLOB_KEY }).catch(() => ({ blobs: [] as any[] }));
+    const existing = blobs?.find((b: any) => b.pathname === BLOB_KEY);
+    if (existing?.url) {
+      const text = await fetch(existing.url).then(r => r.text());
       return JSON.parse(text) as Db;
     }
     const initial = createInitialDb();
-    await blobPut(BLOB_KEY, JSON.stringify(initial), { contentType: 'application/json', access: 'public' });
+    await blobPut(BLOB_KEY, JSON.stringify(initial), {
+      contentType: 'application/json',
+      access: 'public',
+      addRandomSuffix: false,
+    });
     return initial;
   }
   try {
@@ -166,7 +170,11 @@ export async function loadDb(): Promise<Db> {
 
 export async function saveDb(db: Db): Promise<void> {
   if (process.env.VERCEL) {
-    await blobPut(BLOB_KEY, JSON.stringify(db), { contentType: 'application/json', access: 'public' });
+    await blobPut(BLOB_KEY, JSON.stringify(db), {
+      contentType: 'application/json',
+      access: 'public',
+      addRandomSuffix: false,
+    });
     return;
   }
   fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2), 'utf-8');
