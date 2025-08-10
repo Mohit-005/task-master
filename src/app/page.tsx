@@ -11,7 +11,7 @@ export default async function Home() {
   if (!session?.user) {
     redirect('/login');
   }
-  const db = loadDb();
+  const db = await loadDb();
   const user = db.users.find(u => u.id === session.user.id);
   if (!user) {
     redirect('/login');

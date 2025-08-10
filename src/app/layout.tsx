@@ -34,9 +34,9 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppProvider session={(() => {
+          <AppProvider session={await (async () => {
             if (!session?.user) return null as any;
-            const db = loadDb();
+            const db = await loadDb();
             const user = db.users.find(u => u.id === session.user.id);
             if (!user) return null as any;
             const { password: _omit, ...userToReturn } = user as any;
