@@ -52,5 +52,5 @@ export async function getSessionFromMiddleware(request: NextRequest) {
 }
 
 export async function logout() {
-    cookies().set('session', '', { expires: new Date(0), path: '/' });
+    (await cookies()).set('session', '', { expires: new Date(0), path: '/' });
 }

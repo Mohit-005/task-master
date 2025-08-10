@@ -49,7 +49,6 @@ export async function PUT(
   }
 
   const db = await loadDb();
-  const { taskId } = (params as { taskId: string });
   const taskIndex = db.tasks.findIndex(t => t.id === taskId);
   const updatedTask = { ...db.tasks[taskIndex], ...parsed.data };
   db.tasks[taskIndex] = updatedTask;
