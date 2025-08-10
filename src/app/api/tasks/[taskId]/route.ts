@@ -15,14 +15,21 @@ const taskUpdateSchema = z.object({
 });
 
 async function authorizeTaskAccess(taskId: string, userId: string) {
-    const db = await loadDb();
-    const task = db.tasks.find(t => t.id === taskId);
+  let db = await loadDb();
+  let task = db.tasks.find(t => t.id === taskId);
+  if (!task) {
+    // Retry once for eventual consistency
+    db = await loadDb();
+    task = db.tasks.find(t => t.id === taskId);
     if (!task) return null;
-
-    const board = db.boards.find(b => b.id === task.boardId);
+  }
+  let board = db.boards.find(b => b.id === task.boardId);
+  if (!board || board.userId !== userId) {
+    db = await loadDb();
+    board = db.boards.find(b => b.id === task!.boardId);
     if (!board || board.userId !== userId) return null;
-
-    return task;
+  }
+  return task;
 }
 
 

@@ -64,7 +64,8 @@ export async function POST(request: Request) {
     description: taskData.description || '',
   };
 
-  db.tasks.push(newTask);
-  await saveDb(db);
+  const db2 = await loadDb();
+  db2.tasks.push(newTask);
+  await saveDb(db2);
   return NextResponse.json(newTask, { status: 201 });
 }
