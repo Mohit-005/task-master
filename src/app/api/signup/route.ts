@@ -40,7 +40,14 @@ export async function POST(request: Request) {
 
     db.users.push(newUser);
     await saveDb(db);
-    console.log('After signup, users:', db.users.map(u => u.email));
+    // Ensure persistence is visible before proceeding (handles eventual consistency on serverless)
+    for (let i = 0; i < 3; i++) {
+      const check = await loadDb();
+      const found = check.users.find(u => u.email === normalizedEmail);
+      if (found) break;
+      await new Promise(r => setTimeout(r, 150));
+    }
+    console.log('After signup, users:', (await loadDb()).users.map(u => u.email));
     console.log('New user added to DB:', JSON.stringify(newUser, null, 2));
 
 

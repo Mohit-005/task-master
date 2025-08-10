@@ -19,8 +19,14 @@ export async function POST(request: Request) {
     }
 
     const normalizedEmail = email.toLowerCase();
-    const db = await loadDb();
-    const user = db.users.find(u => u.email.toLowerCase() === normalizedEmail);
+    let db = await loadDb();
+    let user = db.users.find(u => u.email.toLowerCase() === normalizedEmail);
+    if (!user) {
+      // Retry once to avoid race after recent signup
+      await new Promise(r => setTimeout(r, 150));
+      db = await loadDb();
+      user = db.users.find(u => u.email.toLowerCase() === normalizedEmail);
+    }
     console.log('All users in DB:', db.users.map(u => u.email));
 
     if (!user || !user.password) {
