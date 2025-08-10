@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { put as blobPut, get as blobGet } from '@vercel/blob';
+import { put as blobPut, head as blobHead } from '@vercel/blob';
 import bcrypt from 'bcryptjs';
 import type { Board, Task, User } from '@/types';
 
@@ -131,9 +131,10 @@ const BLOB_KEY = 'taskmaster-data.json';
 export async function loadDb(): Promise<Db> {
   // Prefer Blob in serverless to store a single JSON file
   if (process.env.VERCEL) {
-    const res = await blobGet(BLOB_KEY).catch(() => null);
-    if (res?.ok) {
-      const text = await res.blob().then(b => b.text());
+    const meta = await blobHead(BLOB_KEY).catch(() => null as any);
+    const url = (meta as any)?.url || (meta as any)?.downloadUrl;
+    if (url) {
+      const text = await fetch(url).then(r => r.text());
       return JSON.parse(text) as Db;
     }
     const initial = createInitialDb();
