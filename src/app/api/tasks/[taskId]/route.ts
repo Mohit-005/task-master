@@ -35,7 +35,7 @@ export async function PUT(
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
   
-  const { taskId } = await Promise.resolve(params);
+  const { taskId } = (params as { taskId: string });
   const task = await authorizeTaskAccess(taskId, session.user.id);
   if (!task) {
     return NextResponse.json({ message: 'Task not found or forbidden' }, { status: 404 });
@@ -49,7 +49,7 @@ export async function PUT(
   }
 
   const db = await loadDb();
-  const { taskId } = await Promise.resolve(params);
+  const { taskId } = (params as { taskId: string });
   const taskIndex = db.tasks.findIndex(t => t.id === taskId);
   const updatedTask = { ...db.tasks[taskIndex], ...parsed.data };
   db.tasks[taskIndex] = updatedTask;
@@ -67,7 +67,7 @@ export async function DELETE(
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
   
-  const { taskId: delTaskId } = await Promise.resolve(params);
+  const { taskId: delTaskId } = (params as { taskId: string });
   const task = await authorizeTaskAccess(delTaskId, session.user.id);
   if (!task) {
     return NextResponse.json({ message: 'Task not found or forbidden' }, { status: 404 });

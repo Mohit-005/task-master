@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { kv as vercelKv } from '@vercel/kv';
+import { put as blobPut, get as blobGet } from '@vercel/blob';
 import bcrypt from 'bcryptjs';
 import type { Board, Task, User } from '@/types';
 
@@ -126,16 +126,18 @@ function createInitialDb(): Db {
   };
 }
 
-function isKvAvailable(): boolean {
-  return !!vercelKv && (!!process.env.KV_REST_API_URL || !!process.env.KV_URL || !!process.env.VERCEL);
-}
+const BLOB_KEY = 'taskmaster-data.json';
 
 export async function loadDb(): Promise<Db> {
-  if (isKvAvailable()) {
-    const existing = await vercelKv.get<Db>('db');
-    if (existing) return existing;
+  // Prefer Blob in serverless to store a single JSON file
+  if (process.env.VERCEL) {
+    const res = await blobGet(BLOB_KEY).catch(() => null);
+    if (res?.ok) {
+      const text = await res.blob().then(b => b.text());
+      return JSON.parse(text) as Db;
+    }
     const initial = createInitialDb();
-    await vercelKv.set('db', initial);
+    await blobPut(BLOB_KEY, JSON.stringify(initial), { contentType: 'application/json', access: 'public' });
     return initial;
   }
   try {
@@ -162,8 +164,8 @@ export async function loadDb(): Promise<Db> {
 }
 
 export async function saveDb(db: Db): Promise<void> {
-  if (isKvAvailable()) {
-    await vercelKv.set('db', db);
+  if (process.env.VERCEL) {
+    await blobPut(BLOB_KEY, JSON.stringify(db), { contentType: 'application/json', access: 'public' });
     return;
   }
   fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2), 'utf-8');
