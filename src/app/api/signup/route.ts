@@ -22,6 +22,7 @@ export async function POST(request: Request) {
 
     const db = await loadDb();
     const existingUser = db.users.find(u => u.email.toLowerCase() === normalizedEmail);
+    console.log('Signup check existing for', normalizedEmail, '=>', !!existingUser);
     if (existingUser) {
       console.log('Signup failed: User already exists');
       return NextResponse.json({ message: 'User with this email already exists' }, { status: 409 });
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
 
     db.users.push(newUser);
     await saveDb(db);
+    console.log('After signup, users:', db.users.map(u => u.email));
     console.log('New user added to DB:', JSON.stringify(newUser, null, 2));
 
 

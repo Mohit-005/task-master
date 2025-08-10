@@ -21,6 +21,7 @@ export async function POST(request: Request) {
     const normalizedEmail = email.toLowerCase();
     const db = await loadDb();
     const user = db.users.find(u => u.email.toLowerCase() === normalizedEmail);
+    console.log('All users in DB:', db.users.map(u => u.email));
 
     if (!user || !user.password) {
       console.log("Login failed: User not found.");

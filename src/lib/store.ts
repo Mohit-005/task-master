@@ -134,7 +134,7 @@ export async function loadDb(): Promise<Db> {
     const { blobs } = await blobList({ prefix: BLOB_KEY }).catch(() => ({ blobs: [] as any[] }));
     const existing = blobs?.find((b: any) => b.pathname === BLOB_KEY);
     if (existing?.url) {
-      const text = await fetch(existing.url).then(r => r.text());
+      const text = await fetch(existing.url, { cache: 'no-store' }).then(r => r.text());
       return JSON.parse(text) as Db;
     }
     const initial = createInitialDb();
@@ -173,6 +173,7 @@ export async function saveDb(db: Db): Promise<void> {
     await blobPut(BLOB_KEY, JSON.stringify(db), {
       contentType: 'application/json',
       access: 'public',
+      cacheControlMaxAge: 0,
       addRandomSuffix: false,
     });
     return;
