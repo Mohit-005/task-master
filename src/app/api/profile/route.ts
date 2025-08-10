@@ -17,7 +17,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const db = loadDb();
+  const db = await loadDb();
   const userIndex = db.users.findIndex(u => u.id === session.user.id);
   if (userIndex === -1) {
     return NextResponse.json({ message: 'User not found' }, { status: 404 });
@@ -38,8 +38,9 @@ export async function PATCH(request: Request) {
     ...parsed.data 
   };
   
-  db.users[userIndex] = updatedUserData;
-  saveDb(db);
+  let db2 = await loadDb();
+  db2.users[userIndex] = updatedUserData;
+  await saveDb(db2);
   
   // Return the updated user object, omitting the password
   const { password, ...userToReturn } = updatedUserData;
