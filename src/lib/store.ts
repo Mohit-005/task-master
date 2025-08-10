@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { put as blobPut, list as blobList } from '@vercel/blob';
+import { kv as vercelKv } from '@vercel/kv';
 import bcrypt from 'bcryptjs';
 import type { Board, Task, User } from '@/types';
 
@@ -126,23 +126,15 @@ function createInitialDb(): Db {
   };
 }
 
-const BLOB_KEY = 'taskmaster-data.json';
+const KV_KEY = 'taskmaster:db';
 
 export async function loadDb(): Promise<Db> {
-  // Prefer Blob in serverless to store a single JSON file
+  // Prefer Vercel KV in serverless
   if (process.env.VERCEL) {
-    const { blobs } = await blobList({ prefix: BLOB_KEY }).catch(() => ({ blobs: [] as any[] }));
-    const existing = blobs?.find((b: any) => b.pathname === BLOB_KEY);
-    if (existing?.url) {
-      const text = await fetch(existing.url, { cache: 'no-store' }).then(r => r.text());
-      return JSON.parse(text) as Db;
-    }
+    const existing = await vercelKv.get<Db>(KV_KEY).catch(() => null);
+    if (existing) return existing;
     const initial = createInitialDb();
-    await blobPut(BLOB_KEY, JSON.stringify(initial), {
-      contentType: 'application/json',
-      access: 'public',
-      addRandomSuffix: false,
-    });
+    await vercelKv.set(KV_KEY, initial);
     return initial;
   }
   try {
@@ -170,12 +162,7 @@ export async function loadDb(): Promise<Db> {
 
 export async function saveDb(db: Db): Promise<void> {
   if (process.env.VERCEL) {
-    await blobPut(BLOB_KEY, JSON.stringify(db), {
-      contentType: 'application/json',
-      access: 'public',
-      cacheControlMaxAge: 0,
-      addRandomSuffix: false,
-    });
+    await vercelKv.set(KV_KEY, db);
     return;
   }
   fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2), 'utf-8');
