@@ -39,8 +39,9 @@ export async function PATCH(
   }
 
   const updatedBoard = { ...board, name: parsed.data.name };
-  db.boards[boardIndex] = updatedBoard;
-  await saveDb(db);
+  let db2 = await loadDb();
+  db2.boards[boardIndex] = updatedBoard;
+  await saveDb(db2);
 
   return NextResponse.json(updatedBoard, { status: 200 });
 }
@@ -56,8 +57,8 @@ export async function DELETE(
   }
 
   const boardId = params.boardId;
-  const db = await loadDb();
-  const boardIndex = db.boards.findIndex(b => b.id === boardId);
+  let db3 = await loadDb();
+  const boardIndex = db3.boards.findIndex(b => b.id === boardId);
   
   if (boardIndex === -1) {
     return NextResponse.json({ message: 'Board not found' }, { status: 404 });
@@ -68,9 +69,9 @@ export async function DELETE(
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
   }
 
-  db.boards.splice(boardIndex, 1);
-  db.tasks = db.tasks.filter(t => t.boardId !== boardId);
-  await saveDb(db);
+  db3.boards.splice(boardIndex, 1);
+  db3.tasks = db3.tasks.filter(t => t.boardId !== boardId);
+  await saveDb(db3);
 
   return NextResponse.json({ message: 'Board deleted successfully' });
 }

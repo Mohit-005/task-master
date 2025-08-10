@@ -33,8 +33,8 @@ export async function POST(request: Request) {
     userId: session.user.id,
   };
 
-  const db = await loadDb();
-  db.boards.push(newBoard);
-  await saveDb(db);
+  let db2 = await loadDb();
+  db2.boards.push(newBoard);
+  await saveDb(db2);
   return NextResponse.json(newBoard, { status: 201 });
 }

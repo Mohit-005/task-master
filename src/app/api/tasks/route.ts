@@ -43,10 +43,15 @@ export async function POST(request: Request) {
   
   const { boardId, ...taskData } = parsed.data;
 
-  const db = await loadDb();
-  const board = db.boards.find(b => b.id === boardId);
+  let db = await loadDb();
+  let board = db.boards.find(b => b.id === boardId);
   if (!board || board.userId !== session.user.id) {
-    return NextResponse.json({ message: 'Board not found or you do not have permission' }, { status: 403 });
+    // Retry once in case of eventual consistency on Blob
+    db = await loadDb();
+    board = db.boards.find(b => b.id === boardId);
+    if (!board || board.userId !== session.user.id) {
+      return NextResponse.json({ message: 'Board not found or you do not have permission' }, { status: 403 });
+    }
   }
   
   const newTask = {

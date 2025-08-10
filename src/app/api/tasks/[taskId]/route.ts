@@ -48,11 +48,11 @@ export async function PUT(
       return NextResponse.json({ message: 'Invalid data', errors: parsed.error.errors }, { status: 400 });
   }
 
-  const db = await loadDb();
-  const taskIndex = db.tasks.findIndex(t => t.id === taskId);
-  const updatedTask = { ...db.tasks[taskIndex], ...parsed.data };
-  db.tasks[taskIndex] = updatedTask;
-  await saveDb(db);
+  let db2 = await loadDb();
+  const taskIndex = db2.tasks.findIndex(t => t.id === taskId);
+  const updatedTask = { ...db2.tasks[taskIndex], ...parsed.data };
+  db2.tasks[taskIndex] = updatedTask;
+  await saveDb(db2);
 
   return NextResponse.json(updatedTask, { status: 200 });
 }
@@ -72,10 +72,10 @@ export async function DELETE(
     return NextResponse.json({ message: 'Task not found or forbidden' }, { status: 404 });
   }
 
-  const db = await loadDb();
-  const delIndex = db.tasks.findIndex(t => t.id === delTaskId);
-  db.tasks.splice(delIndex, 1);
-  await saveDb(db);
+  let db3 = await loadDb();
+  const delIndex = db3.tasks.findIndex(t => t.id === delTaskId);
+  db3.tasks.splice(delIndex, 1);
+  await saveDb(db3);
 
   return NextResponse.json({ message: 'Task deleted' }, { status: 200 });
 }
