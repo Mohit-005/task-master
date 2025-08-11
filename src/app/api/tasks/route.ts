@@ -60,6 +60,7 @@ export async function POST(request: Request) {
     boardId,
     userId: session.user.id,
     dueDate: taskData.dueDate || null,
+    createdAt: new Date().toISOString(),
     tags: taskData.tags || [],
     description: taskData.description || '',
   };

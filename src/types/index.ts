@@ -7,6 +7,7 @@ export type Task = {
   description: string;
   status: TaskStatus;
   dueDate: string | null; // Changed to string to support ISO 8601 format
+  createdAt: string; // ISO 8601 created date
   tags: string[];
   boardId: string;
   userId: string;

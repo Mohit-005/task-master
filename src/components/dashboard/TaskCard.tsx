@@ -1,6 +1,6 @@
 
 'use client';
-import { formatDistanceToNow, isPast, differenceInHours } from 'date-fns';
+import { formatDistanceToNow, isPast, differenceInHours, format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -129,12 +129,17 @@ export function TaskCard({ task, index, onToggleComplete, onEdit, onDelete }: Ta
                     </Badge>
                   ))}
                 </div>
-                {dueDateInWords && (
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="font-normal whitespace-nowrap">
+                    <span className="text-xs text-muted-foreground">Created {format(new Date(task.createdAt), 'MMM d, yyyy')}</span>
+                  </Badge>
+                  {dueDateInWords && (
                   <Badge variant={isOverdue || isDueSoon ? 'destructive' : 'outline'} className="flex items-center gap-1 font-normal whitespace-nowrap">
                       <CalendarIcon className="h-3 w-3" />
                       <span>{dueDateInWords}</span>
                   </Badge>
-                )}
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
