@@ -34,33 +34,12 @@ A full‑stack TaskBoards app built with Next.js App Router, TypeScript, and Tai
 
 Demo user: `user@example.com` / `password123`
 
-## Deploying to Vercel
-
-1. Provision Vercel KV (Upstash → “Upstash for Redis”). Choose a region close to your project (e.g., `iad1`).
-2. In Vercel → Project → Settings → Environment Variables, set for Preview and Production:
-   - `KV_REST_API_URL` = the Upstash REST API URL (e.g., `https://xxxxx.upstash.io`)
-   - `KV_REST_API_TOKEN` = the Upstash REST API Token
-   - `JWT_SECRET` = long random secret
-   - `GEMINI_API_KEY` = your Gemini key
-3. Redeploy with “Clear build cache”.
-
-Notes:
-
-- We no longer need a Blob token; KV replaces Blob to avoid eventual consistency issues.
-- For larger avatars, switch to Blob uploads and store only a URL (easy to add).
-
 ## Project structure (high‑level)
 
 - `src/app/api/*` — REST endpoints for auth, boards, tasks, profile
 - `src/lib/auth.ts` — JWT issue/verify helpers
-- `src/lib/store.ts` — storage abstraction (KV in serverless, JSON file locally)
 - `src/components/*` — UI components and dashboard views
 - `src/ai/*` — optional AI tag suggestions with Genkit
-
-## Common issues
-
-- 401 after signup/login on Vercel: ensure KV env vars exist in the same environment (Preview or Production) and redeploy with clear cache.
-- 413 on profile avatar: image too large (>1MB) when sending as data URL. Use a smaller image or switch to Blob uploads.
 
 ## Scripts
 
