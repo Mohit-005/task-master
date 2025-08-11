@@ -29,8 +29,9 @@ interface TaskCardProps {
 export function TaskCard({ task, index, onToggleComplete, onEdit, onDelete }: TaskCardProps) {
   const isCompleted = task.status === 'done';
 
-  const dueDateInWords = task.dueDate
-    ? formatDistanceToNow(task.dueDate, { addSuffix: true })
+  const dueDateObj = task.dueDate ? new Date(task.dueDate) : null;
+  const dueDateInWords = dueDateObj && !Number.isNaN(dueDateObj.getTime())
+    ? formatDistanceToNow(dueDateObj, { addSuffix: true })
     : null;
   
   const isDueSoon = task.dueDate 
@@ -130,9 +131,11 @@ export function TaskCard({ task, index, onToggleComplete, onEdit, onDelete }: Ta
                   ))}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="font-normal whitespace-nowrap">
-                    <span className="text-xs text-muted-foreground">Created {format(new Date(task.createdAt), 'MMM d, yyyy')}</span>
-                  </Badge>
+                  {task.createdAt && !Number.isNaN(new Date(task.createdAt).getTime()) && (
+                    <Badge variant="outline" className="font-normal whitespace-nowrap">
+                      <span className="text-xs text-muted-foreground">Created {format(new Date(task.createdAt), 'MMM d, yyyy')}</span>
+                    </Badge>
+                  )}
                   {dueDateInWords && (
                   <Badge variant={isOverdue || isDueSoon ? 'destructive' : 'outline'} className="flex items-center gap-1 font-normal whitespace-nowrap">
                       <CalendarIcon className="h-3 w-3" />
